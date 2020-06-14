@@ -12,6 +12,7 @@ all =
         [ describe "spawnHero" spawnHeroTests
         , describe "spawnVillain" spawnVillainTests
         , describe "addItem" addItemTests
+        , describe "withPosition" withPositionTests
         ]
 
 
@@ -76,9 +77,29 @@ addItemTests : List Test
 addItemTests =
     [ test "adds an item to the inventory" <|
         \() ->
-            Player.spawnHero "at" { x = 0, y = 0 }
+            testPlayer
                 |> Player.addItem Item.Sword
                 |> Player.addItem Item.Potion
                 |> Player.inventory
                 |> Expect.equalLists [ Item.Potion, Item.Sword ]
     ]
+
+
+withPositionTests : List Test
+withPositionTests =
+    [ test "updates the player's position" <|
+        \() ->
+            let
+                coords =
+                    { x = 1, y = 2 }
+            in
+            testPlayer
+                |> Player.withPosition coords
+                |> Player.position
+                |> Expect.equal coords
+    ]
+
+
+testPlayer : Player.Warrior
+testPlayer =
+    Player.spawnHero "test" { x = 0, y = 0 }
