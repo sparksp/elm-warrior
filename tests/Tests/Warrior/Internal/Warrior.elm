@@ -3,6 +3,7 @@ module Tests.Warrior.Internal.Warrior exposing (all)
 import Expect
 import Test exposing (Test, describe, test)
 import Warrior.Internal.Warrior as Player
+import Warrior.Item as Item
 
 
 all : Test
@@ -10,6 +11,7 @@ all =
     describe "Internal.Warrior"
         [ describe "spawnHero" spawnHeroTests
         , describe "spawnVillain" spawnVillainTests
+        , describe "addItem" addItemTests
         ]
 
 
@@ -67,4 +69,16 @@ spawnVillainTests =
                     , Player.maxHealth >> Expect.equal initialHealth
                     , Player.inventory >> List.isEmpty >> Expect.equal True
                     ]
+    ]
+
+
+addItemTests : List Test
+addItemTests =
+    [ test "adds an item to the inventory" <|
+        \() ->
+            Player.spawnHero "at" { x = 0, y = 0 }
+                |> Player.addItem Item.Sword
+                |> Player.addItem Item.Potion
+                |> Player.inventory
+                |> Expect.equalLists [ Item.Potion, Item.Sword ]
     ]
