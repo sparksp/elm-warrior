@@ -13,6 +13,8 @@ all =
         , describe "spawnVillain" spawnVillainTests
         , describe "addItem" addItemTests
         , describe "withPosition" withPositionTests
+        , describe "attack" attackTests
+        , describe "attackDamage" attackDamageTests
         ]
 
 
@@ -97,6 +99,55 @@ withPositionTests =
                 |> Player.withPosition coords
                 |> Player.position
                 |> Expect.equal coords
+    ]
+
+
+attackTests : List Test
+attackTests =
+    [ test "with no Sword damages the defender by 1" <|
+        \() ->
+            let
+                attacker =
+                    testPlayer
+            in
+            testPlayer
+                |> Player.attack attacker
+                |> Player.health
+                |> Expect.equal 9
+    , test "with a Sword damages the defender by 3" <|
+        \() ->
+            let
+                attacker =
+                    testPlayer
+                        |> Player.addItem Item.Sword
+            in
+            testPlayer
+                |> Player.attack attacker
+                |> Player.health
+                |> Expect.equal 7
+    ]
+
+
+attackDamageTests : List Test
+attackDamageTests =
+    [ test "with no Sword damage is 1" <|
+        \() ->
+            testPlayer
+                |> Player.attackDamage
+                |> Expect.equal 1
+    , test "with a Sword damage is 3" <|
+        \() ->
+            testPlayer
+                |> Player.addItem Item.Sword
+                |> Player.attackDamage
+                |> Expect.equal 3
+    , test "with 2 Swords damage is still 3" <|
+        \() ->
+            testPlayer
+                |> Player.addItem Item.Sword
+                |> Player.addItem Item.Sword
+                |> Player.attackDamage
+                |> Expect.equal 3
     ]
 
 
