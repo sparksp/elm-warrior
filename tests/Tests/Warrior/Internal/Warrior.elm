@@ -17,6 +17,7 @@ all =
         , describe "attackDamage" attackDamageTests
         , describe "heal" healTests
         , describe "healingPotential" healingPotentialTests
+        , describe "alive" aliveTests
         ]
 
 
@@ -228,6 +229,31 @@ healingPotentialTests =
                 |> Player.addItem Item.Potion
                 |> Player.healingPotential
                 |> Expect.equal 6
+    ]
+
+
+aliveTests : List Test
+aliveTests =
+    [ test "with full health is alive" <|
+        \() ->
+            testPlayer
+                |> Player.alive
+                |> Expect.equal True
+    , test "with 1 health is alive" <|
+        \() ->
+            playerWithHealth 1
+                |> Player.alive
+                |> Expect.equal True
+    , test "with 0 health is not alive" <|
+        \() ->
+            playerWithHealth 0
+                |> Player.alive
+                |> Expect.equal False
+    , test "with health below 0 is not alive" <|
+        \() ->
+            playerWithHealth -1
+                |> Player.alive
+                |> Expect.equal False
     ]
 
 
