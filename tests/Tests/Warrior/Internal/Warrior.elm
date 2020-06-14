@@ -128,6 +128,17 @@ attackTests =
                 |> Player.attack attacker
                 |> Player.health
                 |> Expect.equal 7
+    , test "can damage a player to below 0 health" <|
+        \() ->
+            let
+                attacker =
+                    testPlayer
+                        |> Player.addItem Item.Sword
+            in
+            playerWithHealth 1
+                |> Player.attack attacker
+                |> Player.health
+                |> Expect.equal -2
     ]
 
 
