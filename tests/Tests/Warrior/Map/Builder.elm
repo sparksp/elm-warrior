@@ -15,6 +15,7 @@ all =
         , describe "withDescription" withDescriptionTests
         , describe "withExitPoint" withExitPointTests
         , describe "withSpawnPoint" withSpawnPointTests
+        , describe "withWalledArea" withWalledAreaTests
         ]
 
 
@@ -95,6 +96,31 @@ withSpawnPointTests =
                 |> Warrior.Map.Test.expectEqualTiles
                     [ [ Tile.Empty, Tile.Empty ]
                     , [ Tile.Empty, Tile.Empty ]
+                    ]
+    ]
+
+
+withWalledAreaTests : List Test
+withWalledAreaTests =
+    [ test "adds a block of Walls to the map" <|
+        \() ->
+            Builder.init { rows = 4, columns = 4 }
+                |> Builder.withWalledArea { x = 1, y = 1 } { x = 2, y = 2 }
+                |> Builder.build
+                |> Warrior.Map.Test.expectEqualTiles
+                    [ [ Tile.Empty, Tile.Empty, Tile.Empty, Tile.Empty ]
+                    , [ Tile.Empty, Tile.Wall, Tile.Wall, Tile.Empty ]
+                    , [ Tile.Empty, Tile.Wall, Tile.Wall, Tile.Empty ]
+                    , [ Tile.Empty, Tile.Empty, Tile.Empty, Tile.Empty ]
+                    ]
+    , test "does not add Walls outside of map bounds" <|
+        \() ->
+            Builder.init { rows = 2, columns = 4 }
+                |> Builder.withWalledArea { x = 3, y = 0 } { x = 5, y = 3 }
+                |> Builder.build
+                |> Warrior.Map.Test.expectEqualTiles
+                    [ [ Tile.Empty, Tile.Empty, Tile.Empty, Tile.Wall ]
+                    , [ Tile.Empty, Tile.Empty, Tile.Empty, Tile.Wall ]
                     ]
     ]
 
