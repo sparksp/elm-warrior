@@ -2,8 +2,10 @@ module Tests.Warrior.Map.Builder exposing (all)
 
 import Expect
 import Test exposing (Test, describe, test)
-import Warrior.Internal.Map exposing (Map(..))
+import Warrior.Internal.Map as Map exposing (Map(..))
 import Warrior.Map.Builder as Builder
+import Warrior.Map.Test
+import Warrior.Map.Tile as Tile
 
 
 all : Test
@@ -11,6 +13,7 @@ all =
     describe "Warrior.Internal.Builder"
         [ describe "spawnPoints" spawnPointsTests
         , describe "withDescription" withDescriptionTests
+        , describe "withExitPoint" withExitPointTests
         ]
 
 
@@ -45,6 +48,29 @@ withDescriptionTests =
                 |> Builder.build
                 |> mapDescription
                 |> Expect.equal "A test map."
+    ]
+
+
+withExitPointTests : List Test
+withExitPointTests =
+    [ test "adds an Exit to the map" <|
+        \() ->
+            Builder.init { rows = 1, columns = 5 }
+                |> Builder.withExitPoint { x = 1, y = 0 }
+                |> Builder.build
+                |> Map.tileAtPosition { x = 1, y = 0 }
+                |> Expect.equal Tile.Exit
+    , test "does not add an Exit out of bounds" <|
+        \() ->
+            Builder.init { rows = 2, columns = 2 }
+                |> Builder.withExitPoint { x = 0, y = 3 }
+                |> Builder.withExitPoint { x = 3, y = 0 }
+                |> Builder.withExitPoint { x = 3, y = 3 }
+                |> Builder.build
+                |> Warrior.Map.Test.expectEqualTiles
+                    [ [ Tile.Empty, Tile.Empty ]
+                    , [ Tile.Empty, Tile.Empty ]
+                    ]
     ]
 
 
