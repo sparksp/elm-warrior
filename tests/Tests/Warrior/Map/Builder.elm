@@ -15,6 +15,7 @@ all : Test
 all =
     describe "Warrior.Internal.Builder"
         [ describe "init" initTests
+        , describe "armLastNpc" armLastNpcTests
         , describe "npcs" npcsTests
         , describe "spawnPoints" spawnPointsTests
         , describe "withDescription" withDescriptionTests
@@ -34,6 +35,32 @@ initTests =
                 |> Builder.build
                 |> Warrior.Map.Test.expectEqualTiles
                     (List.repeat 4 (List.repeat 3 Tile.Empty))
+    ]
+
+
+armLastNpcTests : List Test
+armLastNpcTests =
+    [ test "gives an item to the most recent NPC" <|
+        \() ->
+            Builder.init { rows = 5, columns = 5 }
+                |> Builder.withNpc "Robin" { x = 1, y = 1 } Dummy.takeTurn
+                |> Builder.armLastNpc Item.Potion
+                |> Builder.withNpc "Phill" { x = 1, y = 3 } Dummy.takeTurn
+                |> Builder.armLastNpc Item.Sword
+                |> Builder.npcs
+                |> List.map Tuple.first
+                |> Expect.equalLists
+                    [ Warrior.spawnVillain "Phill" { x = 1, y = 3 }
+                        |> Warrior.addItem Item.Sword
+                    , Warrior.spawnVillain "Robin" { x = 1, y = 1 }
+                        |> Warrior.addItem Item.Potion
+                    ]
+    , test "with no NPCs it has no effect" <|
+        \() ->
+            Builder.init { rows = 5, columns = 5 }
+                |> Builder.armLastNpc Item.Sword
+                |> Builder.npcs
+                |> Expect.equalLists []
     ]
 
 
