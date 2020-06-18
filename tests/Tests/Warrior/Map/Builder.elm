@@ -14,6 +14,7 @@ all =
         [ describe "spawnPoints" spawnPointsTests
         , describe "withDescription" withDescriptionTests
         , describe "withExitPoint" withExitPointTests
+        , describe "withSpawnPoint" withSpawnPointTests
         ]
 
 
@@ -66,6 +67,30 @@ withExitPointTests =
                 |> Builder.withExitPoint { x = 0, y = 3 }
                 |> Builder.withExitPoint { x = 3, y = 0 }
                 |> Builder.withExitPoint { x = 3, y = 3 }
+                |> Builder.build
+                |> Warrior.Map.Test.expectEqualTiles
+                    [ [ Tile.Empty, Tile.Empty ]
+                    , [ Tile.Empty, Tile.Empty ]
+                    ]
+    ]
+
+
+withSpawnPointTests : List Test
+withSpawnPointTests =
+    [ test "adds a SpawnPoint to the map" <|
+        \() ->
+            Builder.init { rows = 1, columns = 5 }
+                |> Builder.withSpawnPoint { x = 3, y = 0 }
+                |> Builder.build
+                |> Warrior.Map.Test.expectEqualTiles
+                    [ [ Tile.Empty, Tile.Empty, Tile.Empty, Tile.SpawnPoint, Tile.Empty ]
+                    ]
+    , test "does not add a SpawnPoint out of bounds" <|
+        \() ->
+            Builder.init { rows = 2, columns = 2 }
+                |> Builder.withSpawnPoint { x = 3, y = 0 }
+                |> Builder.withSpawnPoint { x = 0, y = 3 }
+                |> Builder.withSpawnPoint { x = 3, y = 3 }
                 |> Builder.build
                 |> Warrior.Map.Test.expectEqualTiles
                     [ [ Tile.Empty, Tile.Empty ]
