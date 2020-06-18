@@ -14,8 +14,50 @@ import Warrior.Npc.Dummy as Dummy
 all : Test
 all =
     describe "Warrior.Map.Progression"
-        [ describe "reachExitPoint" reachExitPointTests
+        [ describe "lastWarriorStanding" lastWarriorStandingTests
+        , describe "reachExitPoint" reachExitPointTests
         ]
+
+
+lastWarriorStandingTests : List Test
+lastWarriorStandingTests =
+    [ describe "Advance"
+        [ test "with 1 remaining player" <|
+            \() ->
+                let
+                    players : List Player.Warrior
+                    players =
+                        [ Player.spawnHero "Phill" { x = 0, y = 0 }
+                        ]
+                in
+                Progression.lastWarriorStanding players emptyMap emptyHistory
+                    |> Expect.equal (Progression.Advance players)
+        ]
+    , describe "GameOver"
+        [ test "with no remaining players" <|
+            \() ->
+                let
+                    players : List Player.Warrior
+                    players =
+                        []
+                in
+                Progression.lastWarriorStanding players emptyMap emptyHistory
+                    |> Expect.equal Progression.GameOver
+        ]
+    , describe "Undecided"
+        [ test "with more than one player remaining" <|
+            \() ->
+                let
+                    players : List Player.Warrior
+                    players =
+                        [ Player.spawnHero "Robin" { x = 0, y = 0 }
+                        , Player.spawnHero "Phill" { x = 1, y = 0 }
+                        ]
+                in
+                Progression.lastWarriorStanding players emptyMap emptyHistory
+                    |> Expect.equal Progression.Undecided
+        ]
+    ]
 
 
 reachExitPointTests : List Test
@@ -103,7 +145,7 @@ injurePlayerUntilHealthIs health player =
 
 emptyMap : Map
 emptyMap =
-    Builder.init { rows = 1, columns = 1 }
+    Builder.init { rows = 1, columns = 5 }
         |> Builder.build
 
 
