@@ -16,6 +16,7 @@ all =
     describe "Warrior.Map.Progression"
         [ describe "lastWarriorStanding" lastWarriorStandingTests
         , describe "reachExitPoint" reachExitPointTests
+        , describe "withRoundLimit" withRoundLimitTests
         ]
 
 
@@ -116,6 +117,14 @@ reachExitPointTests =
                 Progression.reachExitPoint players emptyMap emptyHistory
                     |> Expect.equal Progression.Undecided
         ]
+    ]
+
+
+withRoundLimitTests : List Test
+withRoundLimitTests =
+    -- TODO Figure out how to create a History with a number of rounds
+    -- FIXME I'm not sure if the logic of History.roundsPlayed is broken
+    [ Test.todo "is GameOver when the number of rounds is exceeded"
     ]
 
 
