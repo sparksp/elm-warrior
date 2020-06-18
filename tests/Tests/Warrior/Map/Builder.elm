@@ -15,6 +15,7 @@ all : Test
 all =
     describe "Warrior.Internal.Builder"
         [ describe "init" initTests
+        , describe "npcs" npcsTests
         , describe "spawnPoints" spawnPointsTests
         , describe "withDescription" withDescriptionTests
         , describe "withExitPoint" withExitPointTests
@@ -33,6 +34,31 @@ initTests =
                 |> Builder.build
                 |> Warrior.Map.Test.expectEqualTiles
                     (List.repeat 4 (List.repeat 3 Tile.Empty))
+    ]
+
+
+npcsTests : List Test
+npcsTests =
+    [ test "returns a list of all NPCs" <|
+        \() ->
+            Builder.init { rows = 5, columns = 5 }
+                |> Builder.withNpc "Robin" { x = 1, y = 1 } Dummy.takeTurn
+                |> Builder.withNpc "Phill" { x = 4, y = 4 } Dummy.takeTurn
+                |> Builder.npcs
+                |> Expect.equalLists
+                    [ ( Warrior.spawnVillain "Phill" { x = 4, y = 4 }, Dummy.takeTurn )
+                    , ( Warrior.spawnVillain "Robin" { x = 1, y = 1 }, Dummy.takeTurn )
+                    ]
+    , test "can include duplicate names" <|
+        \() ->
+            Builder.init { rows = 5, columns = 5 }
+                |> Builder.withNpc "Dummy" { x = 1, y = 1 } Dummy.takeTurn
+                |> Builder.withNpc "Dummy" { x = 3, y = 1 } Dummy.takeTurn
+                |> Builder.npcs
+                |> Expect.equalLists
+                    [ ( Warrior.spawnVillain "Dummy" { x = 3, y = 1 }, Dummy.takeTurn )
+                    , ( Warrior.spawnVillain "Dummy" { x = 1, y = 1 }, Dummy.takeTurn )
+                    ]
     ]
 
 
