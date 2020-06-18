@@ -3,6 +3,7 @@ module Tests.Warrior.Map.Builder exposing (all)
 import Expect
 import Test exposing (Test, describe, test)
 import Warrior.Internal.Map as Map exposing (Map(..))
+import Warrior.Item as Item
 import Warrior.Map.Builder as Builder
 import Warrior.Map.Test
 import Warrior.Map.Tile as Tile
@@ -14,6 +15,7 @@ all =
         [ describe "spawnPoints" spawnPointsTests
         , describe "withDescription" withDescriptionTests
         , describe "withExitPoint" withExitPointTests
+        , describe "withItem" withItemTests
         , describe "withSpawnPoint" withSpawnPointTests
         , describe "withWalledArea" withWalledAreaTests
         ]
@@ -68,6 +70,39 @@ withExitPointTests =
                 |> Builder.withExitPoint { x = 0, y = 3 }
                 |> Builder.withExitPoint { x = 3, y = 0 }
                 |> Builder.withExitPoint { x = 3, y = 3 }
+                |> Builder.build
+                |> Warrior.Map.Test.expectEqualTiles
+                    [ [ Tile.Empty, Tile.Empty ]
+                    , [ Tile.Empty, Tile.Empty ]
+                    ]
+    ]
+
+
+withItemTests : List Test
+withItemTests =
+    [ test "adds an Item to the map" <|
+        \() ->
+            Builder.init { rows = 1, columns = 5 }
+                |> Builder.withItem { x = 0, y = 0 } Item.Potion
+                |> Builder.build
+                |> Warrior.Map.Test.expectEqualTiles
+                    [ [ Tile.Item Item.Potion, Tile.Empty, Tile.Empty, Tile.Empty, Tile.Empty ]
+                    ]
+    , test "replaces existing item at location" <|
+        \() ->
+            Builder.init { rows = 1, columns = 5 }
+                |> Builder.withItem { x = 2, y = 0 } Item.Potion
+                |> Builder.withItem { x = 2, y = 0 } Item.Sword
+                |> Builder.build
+                |> Warrior.Map.Test.expectEqualTiles
+                    [ [ Tile.Empty, Tile.Empty, Tile.Item Item.Sword, Tile.Empty, Tile.Empty ]
+                    ]
+    , test "does not add an Item out of bounds" <|
+        \() ->
+            Builder.init { rows = 2, columns = 2 }
+                |> Builder.withItem { x = 3, y = 0 } Item.Potion
+                |> Builder.withItem { x = 0, y = 3 } Item.Sword
+                |> Builder.withItem { x = 3, y = 3 } Item.Potion
                 |> Builder.build
                 |> Warrior.Map.Test.expectEqualTiles
                     [ [ Tile.Empty, Tile.Empty ]
