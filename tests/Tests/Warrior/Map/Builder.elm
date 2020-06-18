@@ -3,10 +3,12 @@ module Tests.Warrior.Map.Builder exposing (all)
 import Expect
 import Test exposing (Test, describe, test)
 import Warrior.Internal.Map as Map exposing (Map(..))
+import Warrior.Internal.Warrior as Warrior
 import Warrior.Item as Item
 import Warrior.Map.Builder as Builder
 import Warrior.Map.Test
 import Warrior.Map.Tile as Tile
+import Warrior.Npc.Dummy as Dummy
 
 
 all : Test
@@ -17,6 +19,7 @@ all =
         , describe "withDescription" withDescriptionTests
         , describe "withExitPoint" withExitPointTests
         , describe "withItem" withItemTests
+        , describe "withNpc" withNpcTests
         , describe "withSpawnPoint" withSpawnPointTests
         , describe "withWalledArea" withWalledAreaTests
         ]
@@ -120,6 +123,52 @@ withItemTests =
                     [ [ Tile.Empty, Tile.Empty ]
                     , [ Tile.Empty, Tile.Empty ]
                     ]
+    ]
+
+
+withNpcTests : List Test
+withNpcTests =
+    [ test "places a NPC on the map" <|
+        \() ->
+            Builder.init { rows = 1, columns = 5 }
+                |> Builder.withNpc "Robin" { x = 2, y = 0 } Dummy.takeTurn
+                |> Builder.build
+                |> Warrior.Map.Test.expectEqualTiles
+                    [ [ Tile.Empty, Tile.Empty, Tile.Warrior "Robin", Tile.Empty, Tile.Empty ]
+                    ]
+    , test "replaces existing NPC at location" <|
+        \() ->
+            Builder.init { rows = 1, columns = 5 }
+                |> Builder.withNpc "Robin" { x = 2, y = 0 } Dummy.takeTurn
+                |> Builder.withNpc "Phill" { x = 2, y = 0 } Dummy.takeTurn
+                |> Builder.build
+                |> Warrior.Map.Test.expectEqualTiles
+                    [ [ Tile.Empty, Tile.Empty, Tile.Warrior "Phill", Tile.Empty, Tile.Empty ]
+                    ]
+    , test "a NPC placed at the same location as another NPC does not appear in the list of NPCs" <|
+        \() ->
+            Builder.init { rows = 1, columns = 5 }
+                |> Builder.withNpc "Robin" { x = 2, y = 0 } Dummy.takeTurn
+                |> Builder.withNpc "Phill" { x = 2, y = 0 } Dummy.takeTurn
+                |> Builder.npcs
+                |> Expect.equalLists
+                    [ ( Warrior.spawnVillain "Phill" { x = 2, y = 0 }, Dummy.takeTurn )
+                    ]
+    , test "a NPC placed out of bounds does not appear on the map" <|
+        \() ->
+            Builder.init { rows = 2, columns = 2 }
+                |> Builder.withNpc "Phill" { x = 3, y = 0 } Dummy.takeTurn
+                |> Builder.build
+                |> Warrior.Map.Test.expectEqualTiles
+                    [ [ Tile.Empty, Tile.Empty ]
+                    , [ Tile.Empty, Tile.Empty ]
+                    ]
+    , test "a NPC placed out of bounds does not appear in list of NPCs" <|
+        \() ->
+            Builder.init { rows = 2, columns = 2 }
+                |> Builder.withNpc "Phill" { x = 3, y = 0 } Dummy.takeTurn
+                |> Builder.npcs
+                |> Expect.equal []
     ]
 
 
