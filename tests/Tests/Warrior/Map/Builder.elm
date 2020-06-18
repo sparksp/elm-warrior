@@ -12,13 +12,25 @@ import Warrior.Map.Tile as Tile
 all : Test
 all =
     describe "Warrior.Internal.Builder"
-        [ describe "spawnPoints" spawnPointsTests
+        [ describe "init" initTests
+        , describe "spawnPoints" spawnPointsTests
         , describe "withDescription" withDescriptionTests
         , describe "withExitPoint" withExitPointTests
         , describe "withItem" withItemTests
         , describe "withSpawnPoint" withSpawnPointTests
         , describe "withWalledArea" withWalledAreaTests
         ]
+
+
+initTests : List Test
+initTests =
+    [ test "creates an empty map of the given size" <|
+        \() ->
+            Builder.init { rows = 4, columns = 3 }
+                |> Builder.build
+                |> Warrior.Map.Test.expectEqualTiles
+                    (List.repeat 4 (List.repeat 3 Tile.Empty))
+    ]
 
 
 spawnPointsTests : List Test
