@@ -15,6 +15,8 @@ all : Test
 all =
     describe "Warrior.Internal.History"
         [ describe "init" initTests
+
+        -- `record` is tested by its use in the following tests
         , describe "previousActions" previousActionsTests
         , describe "previousStates" previousStatesTests
         ]
