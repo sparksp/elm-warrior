@@ -19,6 +19,7 @@ all =
         -- `record` is tested by its use in the following tests
         , describe "previousActions" previousActionsTests
         , describe "previousStates" previousStatesTests
+        , describe "roundsPlayed" roundsPlayedTests
         ]
 
 
@@ -173,6 +174,56 @@ previousStatesTests =
                             , ( robin, map )
                             ]
                     ]
+    ]
+
+
+roundsPlayedTests : List Test
+roundsPlayedTests =
+    [ test "with empty history it is 0" <|
+        \() ->
+            History.init
+                |> History.roundsPlayed
+                |> Expect.equal 0
+    , test "with one player, is the number of actions they've taken" <|
+        \() ->
+            let
+                player : Player.Warrior
+                player =
+                    testPlayer
+
+                map : Map
+                map =
+                    emptyMap
+            in
+            History.init
+                |> History.record player map Warrior.Wait
+                |> History.record player map Warrior.Wait
+                |> History.record player map Warrior.Wait
+                |> History.roundsPlayed
+                |> Expect.equal 2
+    , test "with two players, is the number of actions the first player has taken" <|
+        \() ->
+            let
+                phill : Player.Warrior
+                phill =
+                    Player.spawnHero "Phill" { x = 0, y = 0 }
+
+                robin : Player.Warrior
+                robin =
+                    Player.spawnHero "Robin" { x = 4, y = 4 }
+
+                map : Map
+                map =
+                    emptyMap
+            in
+            History.init
+                |> History.record phill map Warrior.Wait
+                |> History.record robin map Warrior.Wait
+                |> History.record phill map Warrior.Wait
+                |> History.record robin map Warrior.Wait
+                |> History.record phill map Warrior.Wait
+                |> History.roundsPlayed
+                |> Expect.equal 2
     ]
 
 
