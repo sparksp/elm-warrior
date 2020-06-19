@@ -2,6 +2,7 @@ module Tests.Warrior.Internal.Map exposing (all)
 
 import Expect
 import Test exposing (Test, describe, test)
+import Warrior.Direction as Direction
 import Warrior.Internal.Map as Map
 import Warrior.Internal.Warrior as Player
 import Warrior.Item as Item
@@ -12,8 +13,34 @@ import Warrior.Map.Tile as Tile
 all : Test
 all =
     describe "Warrior.Internal.Map"
-        [ describe "lookDown" lookDownTests
+        [ describe "coordinateFrom" coordinateFromTests
+        , describe "lookDown" lookDownTests
         ]
+
+
+coordinateFromTests : List Test
+coordinateFromTests =
+    [ test "gets coordinate to the Left" <|
+        \() ->
+            { x = 2, y = 2 }
+                |> Map.coordinateFrom Direction.Left
+                |> Expect.equal { x = 1, y = 2 }
+    , test "gets coordinate to the Right" <|
+        \() ->
+            { x = 2, y = 2 }
+                |> Map.coordinateFrom Direction.Right
+                |> Expect.equal { x = 3, y = 2 }
+    , test "gets coordinate above (Up)" <|
+        \() ->
+            { x = 2, y = 2 }
+                |> Map.coordinateFrom Direction.Up
+                |> Expect.equal { x = 2, y = 1 }
+    , test "gets coordinate below (Down)" <|
+        \() ->
+            { x = 2, y = 2 }
+                |> Map.coordinateFrom Direction.Down
+                |> Expect.equal { x = 2, y = 3 }
+    ]
 
 
 lookDownTests : List Test
