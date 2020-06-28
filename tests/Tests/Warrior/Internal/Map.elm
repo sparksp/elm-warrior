@@ -7,6 +7,7 @@ import Warrior.Internal.Map as Map exposing (Map)
 import Warrior.Internal.Warrior as Player
 import Warrior.Item as Item exposing (Item)
 import Warrior.Map.Builder as Builder
+import Warrior.Map.Test
 import Warrior.Map.Tile as Tile
 import Warrior.Npc.Dummy as Dummy
 
@@ -17,6 +18,7 @@ all =
         [ describe "coordinateFrom" coordinateFromTests
         , describe "lookDown" lookDownTests
         , describe "removeItem" removeItemTests
+        , describe "setNpcs" setNpcsTests
         , describe "spawnPoints" spawnPointTests
         , describe "tileAtPosition" tileAtPositionTests
         ]
@@ -145,6 +147,46 @@ removeItemTests =
                 |> Builder.build
                 |> Map.removeItem { x = 3, y = 0 }
                 |> Expect.equal Nothing
+    ]
+
+
+setNpcsTests : List Test
+setNpcsTests =
+    [ test "given no NPCs removes all NPCs on map" <|
+        \() ->
+            Builder.init { rows = 1, columns = 5 }
+                |> Builder.withNpc "Dummy 1" { x = 4, y = 0 } Dummy.takeTurn
+                |> Builder.withNpc "Dummy 2" { x = 1, y = 0 } Dummy.takeTurn
+                |> Builder.build
+                |> Map.setNpcs []
+                |> Warrior.Map.Test.expectEqualTiles
+                    [ List.repeat 5 Tile.Empty ]
+    , test "replaces NPCs on the map" <|
+        \() ->
+            Builder.init { rows = 1, columns = 5 }
+                |> Builder.withNpc "Dummy" { x = 4, y = 0 } Dummy.takeTurn
+                |> Builder.build
+                |> Map.setNpcs
+                    [ Player.spawnVillain "Player" { x = 1, y = 0 }
+                    ]
+                |> Warrior.Map.Test.expectEqualTiles
+                    [ [ Tile.Empty, Tile.Warrior "Player", Tile.Empty, Tile.Empty, Tile.Empty ]
+                    ]
+    , test "moves NPCs to new coordinates" <|
+        \() ->
+            Builder.init { rows = 5, columns = 1 }
+                |> Builder.withNpc "Dummy" { x = 0, y = 4 } Dummy.takeTurn
+                |> Builder.build
+                |> Map.setNpcs
+                    [ Player.spawnVillain "Dummy" { x = 0, y = 3 }
+                    ]
+                |> Warrior.Map.Test.expectEqualTiles
+                    [ [ Tile.Empty ]
+                    , [ Tile.Empty ]
+                    , [ Tile.Empty ]
+                    , [ Tile.Warrior "Dummy" ]
+                    , [ Tile.Empty ]
+                    ]
     ]
 
 
