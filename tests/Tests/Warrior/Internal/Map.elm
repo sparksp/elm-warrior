@@ -3,9 +3,9 @@ module Tests.Warrior.Internal.Map exposing (all)
 import Expect
 import Test exposing (Test, describe, test)
 import Warrior.Direction as Direction
-import Warrior.Internal.Map as Map
+import Warrior.Internal.Map as Map exposing (Map)
 import Warrior.Internal.Warrior as Player
-import Warrior.Item as Item
+import Warrior.Item as Item exposing (Item)
 import Warrior.Map.Builder as Builder
 import Warrior.Map.Tile as Tile
 import Warrior.Npc.Dummy as Dummy
@@ -16,6 +16,7 @@ all =
     describe "Warrior.Internal.Map"
         [ describe "coordinateFrom" coordinateFromTests
         , describe "lookDown" lookDownTests
+        , describe "removeItem" removeItemTests
         , describe "tileAtPosition" tileAtPositionTests
         ]
 
@@ -115,6 +116,34 @@ lookDownTests =
                     |> Map.lookDown player
                     |> Expect.equal Tile.Wall
         ]
+    ]
+
+
+removeItemTests : List Test
+removeItemTests =
+    [ test "with coordinates of item, it is the item and map without item" <|
+        \() ->
+            let
+                result : Maybe ( Item, Map )
+                result =
+                    Builder.init { rows = 1, columns = 5 }
+                        |> Builder.withItem { x = 3, y = 0 } Item.Potion
+                        |> Builder.build
+                        |> Map.removeItem { x = 3, y = 0 }
+            in
+            case result of
+                Just ( item, map ) ->
+                    ( item, Map.tileAtPosition { x = 3, y = 0 } map )
+                        |> Expect.equal ( Item.Potion, Tile.Empty )
+
+                Nothing ->
+                    Expect.fail "Expected Just but got Nothing"
+    , test "with coordinates of no item, it is Nothing" <|
+        \() ->
+            Builder.init { rows = 1, columns = 5 }
+                |> Builder.build
+                |> Map.removeItem { x = 3, y = 0 }
+                |> Expect.equal Nothing
     ]
 
 
