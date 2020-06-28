@@ -17,6 +17,7 @@ all =
         [ describe "coordinateFrom" coordinateFromTests
         , describe "lookDown" lookDownTests
         , describe "removeItem" removeItemTests
+        , describe "spawnPoints" spawnPointTests
         , describe "tileAtPosition" tileAtPositionTests
         ]
 
@@ -147,6 +148,30 @@ removeItemTests =
     ]
 
 
+spawnPointTests : List Test
+spawnPointTests =
+    [ test "is a list of all spawn points' coordinates" <|
+        \() ->
+            Builder.init { rows = 5, columns = 5 }
+                |> Builder.withSpawnPoint { x = 1, y = 3 }
+                |> Builder.withSpawnPoint { x = 2, y = 4 }
+                |> Builder.withSpawnPoint { x = 3, y = 1 }
+                |> Builder.build
+                |> Map.spawnPoints
+                |> expectListContainsAll
+                    [ { x = 1, y = 3 }
+                    , { x = 2, y = 4 }
+                    , { x = 3, y = 1 }
+                    ]
+    , test "with no spawn points is empty" <|
+        \() ->
+            Builder.init { rows = 1, columns = 5 }
+                |> Builder.build
+                |> Map.spawnPoints
+                |> Expect.equal []
+    ]
+
+
 tileAtPositionTests : List Test
 tileAtPositionTests =
     [ describe "SpawnPoint"
@@ -246,3 +271,22 @@ injurePlayerBy damage player =
     in
     List.repeat damage ()
         |> List.foldl (\() -> Player.attack attacker) player
+
+
+{-| Passes if the lists contain all of the same items in any order.
+-}
+expectListContainsAll : List a -> List a -> Expect.Expectation
+expectListContainsAll expected actual =
+    Expect.all
+        ((List.length >> Expect.equal (List.length expected))
+            :: List.map expectListContains expected
+        )
+        actual
+
+
+{-| Passes if the list contains the given item.
+-}
+expectListContains : a -> List a -> Expect.Expectation
+expectListContains value list =
+    List.member value list
+        |> Expect.true ("Expected list to contain " ++ Debug.toString value ++ ".")
