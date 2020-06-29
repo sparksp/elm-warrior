@@ -16,6 +16,7 @@ all : Test
 all =
     describe "Warrior.Internal.Map"
         [ describe "coordinateFrom" coordinateFromTests
+        , describe "look" lookTests
         , describe "lookDown" lookDownTests
         , describe "removeItem" removeItemTests
         , describe "setNpcs" setNpcsTests
@@ -46,6 +47,167 @@ coordinateFromTests =
             { x = 2, y = 2 }
                 |> Map.coordinateFrom Direction.Down
                 |> Expect.equal { x = 2, y = 3 }
+    ]
+
+
+lookTests : List Test
+lookTests =
+    [ describe "Up"
+        [ test "is a list of tiles from the warrior's coordinate to the Boundary" <|
+            \() ->
+                Builder.init { rows = 5, columns = 5 }
+                    |> Builder.withSpawnPoint { x = 1, y = 0 }
+                    |> Builder.withItem { x = 1, y = 2 } Item.Sword
+                    |> Builder.withNpc "Dummy" { x = 1, y = 3 } Dummy.takeTurn
+                    |> Builder.withItem { x = 3, y = 3 } Item.Potion
+                    |> Builder.build
+                    |> Map.look Direction.Up (Player.spawnHero "Player" { x = 1, y = 4 })
+                    |> Expect.equalLists
+                        [ ( { x = 1, y = 3 }, Tile.Warrior "Dummy" )
+                        , ( { x = 1, y = 2 }, Tile.Item Item.Sword )
+                        , ( { x = 1, y = 1 }, Tile.Empty )
+                        , ( { x = 1, y = 0 }, Tile.SpawnPoint )
+                        , ( { x = 1, y = -1 }, Tile.Wall )
+                        ]
+        , test "it looks as far as the nearest Wall" <|
+            \() ->
+                Builder.init { rows = 5, columns = 5 }
+                    |> Builder.withSpawnPoint { x = 1, y = 0 }
+                    |> Builder.withWalledArea { x = 0, y = 1 } { x = 4, y = 0 }
+                    |> Builder.withItem { x = 1, y = 2 } Item.Sword
+                    |> Builder.withNpc "Dummy" { x = 1, y = 3 } Dummy.takeTurn
+                    |> Builder.build
+                    |> Map.look Direction.Up (Player.spawnHero "Player" { x = 1, y = 4 })
+                    |> Expect.equalLists
+                        [ ( { x = 1, y = 3 }, Tile.Warrior "Dummy" )
+                        , ( { x = 1, y = 2 }, Tile.Item Item.Sword )
+                        , ( { x = 1, y = 1 }, Tile.Wall )
+                        ]
+        ]
+    , describe "Right" <|
+        [ test "is a list of tiles from the warrior's coordinate to the Boundary" <|
+            \() ->
+                Builder.init { rows = 5, columns = 5 }
+                    |> Builder.withExitPoint { x = 4, y = 1 }
+                    |> Builder.withNpc "Dummy" { x = 3, y = 1 } Dummy.takeTurn
+                    |> Builder.withItem { x = 1, y = 1 } Item.Potion
+                    |> Builder.withItem { x = 3, y = 3 } Item.Sword
+                    |> Builder.build
+                    |> Map.look Direction.Right (Player.spawnHero "Player" { x = 0, y = 1 })
+                    |> Expect.equalLists
+                        [ ( { x = 1, y = 1 }, Tile.Item Item.Potion )
+                        , ( { x = 2, y = 1 }, Tile.Empty )
+                        , ( { x = 3, y = 1 }, Tile.Warrior "Dummy" )
+                        , ( { x = 4, y = 1 }, Tile.Exit )
+                        , ( { x = 5, y = 1 }, Tile.Wall )
+                        ]
+        , test "it looks as far as the nearest Wall" <|
+            \() ->
+                Builder.init { rows = 5, columns = 5 }
+                    |> Builder.withExitPoint { x = 4, y = 1 }
+                    |> Builder.withNpc "Dummy" { x = 3, y = 1 } Dummy.takeTurn
+                    |> Builder.withWalledArea { x = 2, y = 0 } { x = 2, y = 4 }
+                    |> Builder.withItem { x = 1, y = 1 } Item.Potion
+                    |> Builder.withItem { x = 3, y = 3 } Item.Sword
+                    |> Builder.build
+                    |> Map.look Direction.Right (Player.spawnHero "Player" { x = 0, y = 1 })
+                    |> Expect.equalLists
+                        [ ( { x = 1, y = 1 }, Tile.Item Item.Potion )
+                        , ( { x = 2, y = 1 }, Tile.Wall )
+                        ]
+        ]
+    , describe "Down" <|
+        [ test "is a list of tiles from the warrior's coordinate to the Boundary" <|
+            \() ->
+                Builder.init { rows = 5, columns = 1 }
+                    |> Builder.withItem { x = 0, y = 1 } Item.Potion
+                    |> Builder.withItem { x = 0, y = 2 } Item.Sword
+                    |> Builder.withExitPoint { x = 0, y = 4 }
+                    |> Builder.build
+                    |> Map.look Direction.Down (Player.spawnHero "Player" { x = 0, y = 0 })
+                    |> Expect.equalLists
+                        [ ( { x = 0, y = 1 }, Tile.Item Item.Potion )
+                        , ( { x = 0, y = 2 }, Tile.Item Item.Sword )
+                        , ( { x = 0, y = 3 }, Tile.Empty )
+                        , ( { x = 0, y = 4 }, Tile.Exit )
+                        , ( { x = 0, y = 5 }, Tile.Wall )
+                        ]
+        , test "it looks as far as the nearest Wall" <|
+            \() ->
+                Builder.init { rows = 5, columns = 1 }
+                    |> Builder.withItem { x = 0, y = 1 } Item.Potion
+                    |> Builder.withItem { x = 0, y = 2 } Item.Sword
+                    |> Builder.withWalledArea { x = 0, y = 3 } { x = 0, y = 3 }
+                    |> Builder.withExitPoint { x = 0, y = 4 }
+                    |> Builder.build
+                    |> Map.look Direction.Down (Player.spawnHero "Player" { x = 0, y = 0 })
+                    |> Expect.equalLists
+                        [ ( { x = 0, y = 1 }, Tile.Item Item.Potion )
+                        , ( { x = 0, y = 2 }, Tile.Item Item.Sword )
+                        , ( { x = 0, y = 3 }, Tile.Wall )
+                        ]
+        ]
+    , describe "Left" <|
+        [ test "is a list of tiles from the warrior's coordinate to the Boundary" <|
+            \() ->
+                Builder.init { rows = 1, columns = 7 }
+                    |> Builder.withSpawnPoint { x = 6, y = 0 }
+                    |> Builder.withItem { x = 3, y = 0 } Item.Sword
+                    |> Builder.withNpc "Dummy" { x = 1, y = 0 } Dummy.takeTurn
+                    |> Builder.withExitPoint { x = 0, y = 0 }
+                    |> Builder.build
+                    |> Map.look Direction.Left (Player.spawnHero "Player" { x = 6, y = 0 })
+                    |> Expect.equalLists
+                        [ ( { x = 5, y = 0 }, Tile.Empty )
+                        , ( { x = 4, y = 0 }, Tile.Empty )
+                        , ( { x = 3, y = 0 }, Tile.Item Item.Sword )
+                        , ( { x = 2, y = 0 }, Tile.Empty )
+                        , ( { x = 1, y = 0 }, Tile.Warrior "Dummy" )
+                        , ( { x = 0, y = 0 }, Tile.Exit )
+                        , ( { x = -1, y = 0 }, Tile.Wall )
+                        ]
+        , test "it looks as far as the nearest Wall" <|
+            \() ->
+                Builder.init { rows = 1, columns = 7 }
+                    |> Builder.withSpawnPoint { x = 6, y = 0 }
+                    |> Builder.withItem { x = 3, y = 0 } Item.Sword
+                    |> Builder.withWalledArea { x = 2, y = 0 } { x = 2, y = 0 }
+                    |> Builder.withNpc "Dummy" { x = 1, y = 0 } Dummy.takeTurn
+                    |> Builder.withExitPoint { x = 0, y = 0 }
+                    |> Builder.build
+                    |> Map.look Direction.Left (Player.spawnHero "Player" { x = 6, y = 0 })
+                    |> Expect.equalLists
+                        [ ( { x = 5, y = 0 }, Tile.Empty )
+                        , ( { x = 4, y = 0 }, Tile.Empty )
+                        , ( { x = 3, y = 0 }, Tile.Item Item.Sword )
+                        , ( { x = 2, y = 0 }, Tile.Wall )
+                        ]
+        ]
+    , test "it looks from the position of the NPC known by the map" <|
+        \() ->
+            Builder.init { rows = 5, columns = 5 }
+                |> Builder.withItem { x = 1, y = 0 } Item.Potion
+                |> Builder.withExitPoint { x = 1, y = 1 }
+                |> Builder.withNpc "Dummy" { x = 1, y = 3 } Dummy.takeTurn
+                |> Builder.build
+                |> Map.look Direction.Up (Player.spawnVillain "Dummy" { x = 0, y = 0 })
+                |> Expect.equalLists
+                    [ ( { x = 1, y = 2 }, Tile.Empty )
+                    , ( { x = 1, y = 1 }, Tile.Exit )
+                    , ( { x = 1, y = 0 }, Tile.Item Item.Potion )
+                    , ( { x = 1, y = -1 }, Tile.Wall )
+                    ]
+    , test "if a Warrior is standing on an Item, it sees the Warrior" <|
+        \() ->
+            Builder.init { rows = 2, columns = 1 }
+                |> Builder.withItem { x = 0, y = 1 } Item.Potion
+                |> Builder.withNpc "Dummy" { x = 0, y = 1 } Dummy.takeTurn
+                |> Builder.build
+                |> Map.look Direction.Down (Player.spawnHero "Player" { x = 0, y = 0 })
+                |> Expect.equalLists
+                    [ ( { x = 0, y = 1 }, Tile.Warrior "Dummy" )
+                    , ( { x = 0, y = 2 }, Tile.Wall )
+                    ]
     ]
 
 
